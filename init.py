@@ -1,10 +1,10 @@
 import sys
+import traceback
 from base.parsers import parse_json
 from base.classes import FileProps
 
 
 def main():
-    try:
         with open(sys.argv[1]) as json_file:
             file_props_d = parse_json(json_file) # file_properties_dict
 
@@ -38,8 +38,6 @@ def main():
 
         #print(test_comb_d)
         #create_test_file(file_props_d, test_comb_d)
-    except KeyError:
-        print('Error')
 
 
 if __name__ == '__main__':

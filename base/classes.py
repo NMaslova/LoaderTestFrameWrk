@@ -1,6 +1,6 @@
 from base.gets import get_specific_properties
 from base.generators import generate_value
-from objects.enums import KeyWords
+from globals import *
 from database.psqlconnection import is_value_in_database, retrieve_data
 
 
@@ -28,12 +28,11 @@ class DbDescription(object):
     """
 
     def __init__(self, one_prop_db_descr_d):
-        self.table = one_prop_db_descr_d[KeyWords.table.value]
-        self.column = one_prop_db_descr_d[KeyWords.column.value]
+        self.table = one_prop_db_descr_d[TABLE]
+        self.column = one_prop_db_descr_d[COLUMN]
 
 
 class OneProp(object):
-
     # Attributes:
     # prop_d - dictionary of the elements describing one property of the initial json file
     # db_flag - flag showing is the database check is needed; False - no database check, True - database check should
@@ -58,32 +57,50 @@ class OneProp(object):
         """
         file_value = None
         db_value = None
-        if KeyWords.possibleValues.value in self.prop_d:
-            file_value = self.prop_d[KeyWords.possibleValues.value][0]
+        if POSSIBLE_VALUES in self.prop_d:
+            file_value = self.prop_d[POSSIBLE_VALUES][0]
         else:
-            file_value = generate_value(self.prop_d[KeyWords.type.value])
+            file_value = generate_value(self.prop_d[TYPE])
         if self.db_flag:
             while is_value_in_database(file_value, self.db_description.table, self.db_description.column):
-                file_value = generate_value(self.prop_d[KeyWords.type.value])
+                file_value = generate_value(self.prop_d[TYPE])
             db_value = retrieve_data(self.db_description.table, self.db_description.column)
         self.test_combination = OnePropTestCombination(file_value, db_value)
 
+    def check_dependency_type(self, prop1, prop2):
+        if prop2 in self.prop_d[prop1][DEPENDENCIES]:
+            if self.prop_d[prop1][DEPENDENCY_TYPE] == AND:
+                return True
+            if self.prop_d[prop1][DEPENDENCY_TYPE] == XOR:
+                return False
+            return None # trow an exception
+        else:
+            return None
+
 
 class Section(object):
+    """
+    Corresponds to one section in the .ini file
+    Should contain the section name, sorted list of the section properties and their dependencies
+    """
 
     # Attributes:
-    # name - section name in the ini file
-    # s_props_l - list of sorted properties in the section
-    # deps_d - dict of dependencies of the properties
+    # name - section name in the .ini file
+    # s_props_l - sorted list of properties in the section
+    # deps_d - dict of dependencies of the properties in the section
 
     def __init__(self, name, props_d):
+        """
+        :param name: the name of one section in the .ini file, STRING
+        :param props_d: dictionary, containing all properties of the .ini file, get directly from the .json file
+        :return: Section object
+        """
         self.name = name
-        self.s_props_l = get_specific_properties(KeyWords.section.value, props_d, True, self.name)
-        self.deps_d = get_specific_properties(KeyWords.dependencies.value, props_d, False, None)
+        self.s_props_l = get_specific_properties(SECTION, props_d, True, self.name)
+        self.deps_d = get_specific_properties(DEPENDENCIES, props_d, False, None)
 
 
 class FileProps(object):
-
     # Attributes:
     # f_name_pattern_l - pattern of the file name used to create a test set
     #              [0] - name of the file
@@ -100,21 +117,17 @@ class FileProps(object):
         """
 
         # forming the list of the .ini file's name and extension
-        self.f_name_pattern_l = [file_props_d[KeyWords.fileNamePattern.value],
-                                 file_props_d[KeyWords.fileExtension.value]]
+        self.f_name_pattern_l = [file_props_d[FILE_NAME_PATTERN],
+                                 file_props_d[FILE_EXTENSION]]
 
         # getting the dictionary of the .ini file sections to put them into a sorted list
-        sections_d = file_props_d[KeyWords.fileProperties.value][KeyWords.sections.value]
+        sections_d = file_props_d[FILE_PROPERTIES][SECTIONS]
         self.s_sections_l = [value for (key, value) in sorted(sections_d.items())]
 
         # getting the dictionary of the .ini file properties
-        props_d = file_props_d[KeyWords.fileProperties.value][KeyWords.properties.value]
+        props_d = file_props_d[FILE_PROPERTIES][PROPERTIES]
 
-        #
-        self.sections_obj_l = []
-        for element in self.s_sections_l:
-            x_section = Section(element, props_d)
-            self.sections_obj_l.append(x_section)
+        self.sections_obj_l = [Section(element, props_d) for element in self.s_sections_l]
 
         self.props_obj_d = {}
         for element in props_d:
@@ -122,7 +135,6 @@ class FileProps(object):
             if element in db_descr_d:
                 self.props_obj_d[element].db_description = DbDescription(db_descr_d[element])
                 self.props_obj_d[element].db_flag = True
-
 
     def gen_test_combination(self):
         for element in self.props_obj_d:

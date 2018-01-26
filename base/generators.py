@@ -1,4 +1,4 @@
-from objects.enums import KeyWords
+from globals import *
 import random
 
 
@@ -8,6 +8,6 @@ def simple_generator():
 
 def generate_value(property_type):
     value = simple_generator()
-    if property_type == KeyWords.number.value:
+    if property_type == NUMBER:
         return value
     return str(value)+"_string"

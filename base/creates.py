@@ -1,4 +1,4 @@
-from objects.enums import KeyWords
+from globals import *
 
 
 def create_test_file(file_props_d, test_comb_d):
