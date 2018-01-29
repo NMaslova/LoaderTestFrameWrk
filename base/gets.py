@@ -20,18 +20,21 @@ def get_specific_properties(specification, props_d, s=True, value=None):
     """
     specific_props_d = {}
 
-    # file property is described as a dictionary where the key is the property itself, the value
-    # is a dictionary of specifications
-    for key in props_d:  # for each property in the dict
+    try:
+        # file property is described as a dictionary where the key is the property itself, the value
+        # is a dictionary of specifications
+        for key in props_d:  # for each property in the dict
 
-        for inter_key in props_d[key]:  # for each specification of the property
+            for inter_key in props_d[key]:  # for each specification of the property
 
-            # checking if that specification contains desired keyword and value if not None
-            if (inter_key == specification):
-                if value is None:
-                    specific_props_d[key] = props_d[key][inter_key]
-                if (props_d[key][inter_key] == value) and (value is not None):
-                    specific_props_d[props_d[key][ORDER]] = key  # adding the property to the dict
+                # checking if that specification contains desired keyword and value if not None
+                if inter_key == specification:
+                    if value is None:
+                        specific_props_d[key] = props_d[key][inter_key]
+                    if (props_d[key][inter_key] == value) and (value is not None):
+                        specific_props_d[props_d[key][ORDER]] = key  # adding the property to the dict
+    except TypeError:
+        print("TypeError")
 
     if s:
         # sorted list of desired properties
