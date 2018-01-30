@@ -26,3 +26,6 @@ ORDER = 'order'
 MYSQL = 'mysql'
 ORACLE = 'oracle'
 OPTIONAL = 'optional'
+
+#Sets
+DEPENDENCY_TYPE_SET = set([AND,OR,XOR])

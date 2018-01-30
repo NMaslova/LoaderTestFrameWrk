@@ -1,4 +1,4 @@
-from base.gets import get_specific_properties
+from base.gets import *
 from base.generators import generate_value
 from globals import *
 from database.psqlconnection import is_value_in_database, retrieve_data
@@ -108,6 +108,7 @@ class FileProps(object):
     # s_sections_l - sorted list of sections
     # sections_obj_l - list of Section objects
     # props_obj_d - dict of properties and their specifications
+    # test_files_amount - amout of the test files of the given .ini to be created in the test bunch
 
     def __init__(self, file_props_d, db_descr_d):
         """
@@ -136,6 +137,25 @@ class FileProps(object):
                 self.props_obj_d[element].db_description = DbDescription(db_descr_d[element])
                 self.props_obj_d[element].db_flag = True
 
+        # initiating the test files amount as 4 by the default minimum: None, Blank, file value, db value
+        self.test_files_amount = 4
+
+
     def gen_test_combination(self):
+        """
+        For each props_obj_d element calls function that generate test combination
+        :return:
+        """
         for element in self.props_obj_d:
             self.props_obj_d[element].gen_test_combination()
+
+
+    def count_test_files_amount(self):
+        # initiating the test files amount as 4 by the default minimum: None, Blank, file value, db value
+        amount = 4
+        depend_tuples_d = {}
+
+        for dep_type in DEPENDENCY_TYPE_SET:
+            depend_tuples_d[dep_type] = get_dependency_tuples(self.props_obj_d, dep_type)
+
+        return amount

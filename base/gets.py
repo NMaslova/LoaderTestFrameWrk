@@ -42,3 +42,7 @@ def get_specific_properties(specification, props_d, s=True, value=None):
         return s_desired_props_l
 
     return specific_props_d
+
+
+def get_dependency_tuples(props_obj_d, dep_type):
+    pass
